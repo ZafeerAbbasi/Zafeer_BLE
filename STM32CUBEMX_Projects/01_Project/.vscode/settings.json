@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "hci_tl.h": "c",
+        "bluenrg_conf.h": "c"
+    }
+}
