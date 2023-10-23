@@ -1,0 +1,6 @@
+{
+    "stm32-for-vscode.openOCDPath": "C:\\USERS\\ZAFEE\\APPDATA\\ROAMING\\CODE - INSIDERS\\USER\\GLOBALSTORAGE\\BMD.STM32-FOR-VSCODE\\@XPACK-DEV-TOOLS\\OPENOCD\\0.12.0-2.1\\.CONTENT\\BIN\\OPENOCD.EXE",
+    "cortex-debug.armToolchainPath": "c:\\Users\\zafee\\AppData\\Roaming\\Code - Insiders\\User\\globalStorage\\bmd.stm32-for-vscode\\@xpack-dev-tools\\arm-none-eabi-gcc\\12.3.1-1.2.1\\.content\\bin",
+    "cortex-debug.openocdPath": "C:\\USERS\\ZAFEE\\APPDATA\\ROAMING\\CODE - INSIDERS\\USER\\GLOBALSTORAGE\\BMD.STM32-FOR-VSCODE\\@XPACK-DEV-TOOLS\\OPENOCD\\0.12.0-2.1\\.CONTENT\\BIN\\OPENOCD.EXE",
+    "C_Cpp.default.compilerPath": "C:\\USERS\\ZAFEE\\APPDATA\\ROAMING\\CODE - INSIDERS\\USER\\GLOBALSTORAGE\\BMD.STM32-FOR-VSCODE\\@XPACK-DEV-TOOLS\\ARM-NONE-EABI-GCC\\12.3.1-1.2.1\\.CONTENT\\BIN\\ARM-NONE-EABI-GCC.EXE"
+}

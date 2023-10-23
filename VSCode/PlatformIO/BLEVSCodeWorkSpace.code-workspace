@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "01_PlatformIO_BLE"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdint.h": "c",
+			"stm32h7xx_hal.h": "c",
+			"stm32h743xx.h": "c",
+			"main.h": "c",
+			"usr01_uart.h": "c",
+			"usr02_adc.h": "c",
+			"lwip.h": "c",
+			"ethernetif.h": "c",
+			"stm32h7xx_it.h": "c",
+			"opt.h": "c",
+			"stm32f7xx_hal.h": "c",
+			"stm32f7xx.h": "c",
+			"stm32f746xx.h": "c",
+			"dhcp.h": "c",
+			"mem.h": "c",
+			"usr00_led.h": "c",
+			"timeouts.h": "c",
+			"debug.h": "c",
+			"lwipopts.h": "c",
+			"ethip6.h": "c",
+			"sys.h": "c",
+			"etharp.h": "c",
+			"memp.h": "c",
+			"httpd.h": "c",
+			"usr05_cgi_process.h": "c"
+		}
+	}
+}

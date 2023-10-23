@@ -1,0 +1,1474 @@
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"hci_tl_interface.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "BlueNRG-2/Target/hci_tl_interface.c"
+  20              		.section	.text.HCI_TL_SPI_Init,"ax",%progbits
+  21              		.align	1
+  22              		.global	HCI_TL_SPI_Init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	HCI_TL_SPI_Init:
+  28              	.LVL0:
+  29              	.LFB132:
+   1:BlueNRG-2/Target/hci_tl_interface.c **** /**
+   2:BlueNRG-2/Target/hci_tl_interface.c ****   ******************************************************************************
+   3:BlueNRG-2/Target/hci_tl_interface.c ****   * @file    hci_tl_interface.c
+   4:BlueNRG-2/Target/hci_tl_interface.c ****   * @author  SRA Application Team
+   5:BlueNRG-2/Target/hci_tl_interface.c ****   * @brief   This file provides the implementation for all functions prototypes
+   6:BlueNRG-2/Target/hci_tl_interface.c ****   *          for the STM32 BlueNRG HCI Transport Layer interface.
+   7:BlueNRG-2/Target/hci_tl_interface.c ****   ******************************************************************************
+   8:BlueNRG-2/Target/hci_tl_interface.c ****   * @attention
+   9:BlueNRG-2/Target/hci_tl_interface.c ****   *
+  10:BlueNRG-2/Target/hci_tl_interface.c ****   * Copyright (c) 2023 STMicroelectronics.
+  11:BlueNRG-2/Target/hci_tl_interface.c ****   * All rights reserved.
+  12:BlueNRG-2/Target/hci_tl_interface.c ****   *
+  13:BlueNRG-2/Target/hci_tl_interface.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  14:BlueNRG-2/Target/hci_tl_interface.c ****   * in the root directory of this software component.
+  15:BlueNRG-2/Target/hci_tl_interface.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  16:BlueNRG-2/Target/hci_tl_interface.c ****   *
+  17:BlueNRG-2/Target/hci_tl_interface.c ****   ******************************************************************************
+  18:BlueNRG-2/Target/hci_tl_interface.c ****   */
+  19:BlueNRG-2/Target/hci_tl_interface.c **** 
+  20:BlueNRG-2/Target/hci_tl_interface.c **** /* Includes ------------------------------------------------------------------*/
+  21:BlueNRG-2/Target/hci_tl_interface.c **** #include "RTE_Components.h"
+  22:BlueNRG-2/Target/hci_tl_interface.c **** 
+  23:BlueNRG-2/Target/hci_tl_interface.c **** #include "hci_tl.h"
+  24:BlueNRG-2/Target/hci_tl_interface.c **** 
+  25:BlueNRG-2/Target/hci_tl_interface.c **** /* Defines -------------------------------------------------------------------*/
+  26:BlueNRG-2/Target/hci_tl_interface.c **** 
+  27:BlueNRG-2/Target/hci_tl_interface.c **** #define HEADER_SIZE       5U
+  28:BlueNRG-2/Target/hci_tl_interface.c **** #define MAX_BUFFER_SIZE   255U
+  29:BlueNRG-2/Target/hci_tl_interface.c **** #define TIMEOUT_DURATION  100U
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 2
+
+
+  30:BlueNRG-2/Target/hci_tl_interface.c **** #define TIMEOUT_IRQ_HIGH  1000U
+  31:BlueNRG-2/Target/hci_tl_interface.c **** 
+  32:BlueNRG-2/Target/hci_tl_interface.c **** /* Private variables ---------------------------------------------------------*/
+  33:BlueNRG-2/Target/hci_tl_interface.c **** EXTI_HandleTypeDef hexti0;
+  34:BlueNRG-2/Target/hci_tl_interface.c **** 
+  35:BlueNRG-2/Target/hci_tl_interface.c **** /* Private function prototypes -----------------------------------------------*/
+  36:BlueNRG-2/Target/hci_tl_interface.c **** static void HCI_TL_SPI_Enable_IRQ(void);
+  37:BlueNRG-2/Target/hci_tl_interface.c **** static void HCI_TL_SPI_Disable_IRQ(void);
+  38:BlueNRG-2/Target/hci_tl_interface.c **** static int32_t IsDataAvailable(void);
+  39:BlueNRG-2/Target/hci_tl_interface.c **** 
+  40:BlueNRG-2/Target/hci_tl_interface.c **** /******************** IO Operation and BUS services ***************************/
+  41:BlueNRG-2/Target/hci_tl_interface.c **** /**
+  42:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Enable SPI IRQ.
+  43:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+  44:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval None
+  45:BlueNRG-2/Target/hci_tl_interface.c ****  */
+  46:BlueNRG-2/Target/hci_tl_interface.c **** static void HCI_TL_SPI_Enable_IRQ(void)
+  47:BlueNRG-2/Target/hci_tl_interface.c **** {
+  48:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_EnableIRQ(HCI_TL_SPI_EXTI_IRQn);
+  49:BlueNRG-2/Target/hci_tl_interface.c **** }
+  50:BlueNRG-2/Target/hci_tl_interface.c **** 
+  51:BlueNRG-2/Target/hci_tl_interface.c **** /**
+  52:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Disable SPI IRQ.
+  53:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+  54:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval None
+  55:BlueNRG-2/Target/hci_tl_interface.c ****  */
+  56:BlueNRG-2/Target/hci_tl_interface.c **** static void HCI_TL_SPI_Disable_IRQ(void)
+  57:BlueNRG-2/Target/hci_tl_interface.c **** {
+  58:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_DisableIRQ(HCI_TL_SPI_EXTI_IRQn);
+  59:BlueNRG-2/Target/hci_tl_interface.c **** }
+  60:BlueNRG-2/Target/hci_tl_interface.c **** 
+  61:BlueNRG-2/Target/hci_tl_interface.c **** /**
+  62:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Initializes the peripherals communication with the BlueNRG
+  63:BlueNRG-2/Target/hci_tl_interface.c ****  *         Expansion Board (via SPI, I2C, USART, ...)
+  64:BlueNRG-2/Target/hci_tl_interface.c ****  *
+  65:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  void* Pointer to configuration struct
+  66:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t Status
+  67:BlueNRG-2/Target/hci_tl_interface.c ****  */
+  68:BlueNRG-2/Target/hci_tl_interface.c **** int32_t HCI_TL_SPI_Init(void* pConf)
+  69:BlueNRG-2/Target/hci_tl_interface.c **** {
+  30              		.loc 1 69 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 24
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		.loc 1 69 1 is_stmt 0 view .LVU1
+  35 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  36              		.cfi_def_cfa_offset 20
+  37              		.cfi_offset 4, -20
+  38              		.cfi_offset 5, -16
+  39              		.cfi_offset 6, -12
+  40              		.cfi_offset 7, -8
+  41              		.cfi_offset 14, -4
+  42 0002 87B0     		sub	sp, sp, #28
+  43              		.cfi_def_cfa_offset 48
+  70:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitTypeDef GPIO_InitStruct;
+  44              		.loc 1 70 3 is_stmt 1 view .LVU2
+  71:BlueNRG-2/Target/hci_tl_interface.c **** 
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 3
+
+
+  72:BlueNRG-2/Target/hci_tl_interface.c ****   __HAL_RCC_GPIOA_CLK_ENABLE();
+  45              		.loc 1 72 3 view .LVU3
+  46              	.LBB2:
+  47              		.loc 1 72 3 view .LVU4
+  48 0004 0024     		movs	r4, #0
+  49 0006 0094     		str	r4, [sp]
+  50              		.loc 1 72 3 view .LVU5
+  51 0008 184B     		ldr	r3, .L3
+  52 000a 1A6B     		ldr	r2, [r3, #48]
+  53 000c 42F00102 		orr	r2, r2, #1
+  54 0010 1A63     		str	r2, [r3, #48]
+  55              		.loc 1 72 3 view .LVU6
+  56 0012 1B6B     		ldr	r3, [r3, #48]
+  57 0014 03F00103 		and	r3, r3, #1
+  58 0018 0093     		str	r3, [sp]
+  59              		.loc 1 72 3 view .LVU7
+  60 001a 009B     		ldr	r3, [sp]
+  61              	.LBE2:
+  62              		.loc 1 72 3 view .LVU8
+  73:BlueNRG-2/Target/hci_tl_interface.c **** 
+  74:BlueNRG-2/Target/hci_tl_interface.c ****   /* Configure EXTI Line */
+  75:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pin = HCI_TL_SPI_EXTI_PIN;
+  63              		.loc 1 75 3 view .LVU9
+  64              		.loc 1 75 23 is_stmt 0 view .LVU10
+  65 001c 0126     		movs	r6, #1
+  66 001e 0196     		str	r6, [sp, #4]
+  76:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  67              		.loc 1 76 3 is_stmt 1 view .LVU11
+  68              		.loc 1 76 24 is_stmt 0 view .LVU12
+  69 0020 4FF48813 		mov	r3, #1114112
+  70 0024 0293     		str	r3, [sp, #8]
+  77:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  71              		.loc 1 77 3 is_stmt 1 view .LVU13
+  72              		.loc 1 77 24 is_stmt 0 view .LVU14
+  73 0026 0394     		str	r4, [sp, #12]
+  78:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_Init(HCI_TL_SPI_EXTI_PORT, &GPIO_InitStruct);
+  74              		.loc 1 78 3 is_stmt 1 view .LVU15
+  75 0028 114D     		ldr	r5, .L3+4
+  76 002a 01A9     		add	r1, sp, #4
+  77 002c 2846     		mov	r0, r5
+  78              	.LVL1:
+  79              		.loc 1 78 3 is_stmt 0 view .LVU16
+  80 002e FFF7FEFF 		bl	HAL_GPIO_Init
+  81              	.LVL2:
+  79:BlueNRG-2/Target/hci_tl_interface.c **** 
+  80:BlueNRG-2/Target/hci_tl_interface.c ****   /* Configure RESET Line */
+  81:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pin =  HCI_TL_RST_PIN ;
+  82              		.loc 1 81 3 is_stmt 1 view .LVU17
+  83              		.loc 1 81 23 is_stmt 0 view .LVU18
+  84 0032 4FF48073 		mov	r3, #256
+  85 0036 0193     		str	r3, [sp, #4]
+  82:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  86              		.loc 1 82 3 is_stmt 1 view .LVU19
+  87              		.loc 1 82 24 is_stmt 0 view .LVU20
+  88 0038 0296     		str	r6, [sp, #8]
+  83:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  89              		.loc 1 83 3 is_stmt 1 view .LVU21
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 4
+
+
+  90              		.loc 1 83 24 is_stmt 0 view .LVU22
+  91 003a 0394     		str	r4, [sp, #12]
+  84:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  92              		.loc 1 84 3 is_stmt 1 view .LVU23
+  93              		.loc 1 84 25 is_stmt 0 view .LVU24
+  94 003c 0494     		str	r4, [sp, #16]
+  85:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_Init(HCI_TL_RST_PORT, &GPIO_InitStruct);
+  95              		.loc 1 85 3 is_stmt 1 view .LVU25
+  96 003e 01A9     		add	r1, sp, #4
+  97 0040 2846     		mov	r0, r5
+  98 0042 FFF7FEFF 		bl	HAL_GPIO_Init
+  99              	.LVL3:
+  86:BlueNRG-2/Target/hci_tl_interface.c **** 
+  87:BlueNRG-2/Target/hci_tl_interface.c ****   /* Configure CS */
+  88:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pin = HCI_TL_SPI_CS_PIN ;
+ 100              		.loc 1 88 3 view .LVU26
+ 101              		.loc 1 88 23 is_stmt 0 view .LVU27
+ 102 0046 0227     		movs	r7, #2
+ 103 0048 0197     		str	r7, [sp, #4]
+  89:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+ 104              		.loc 1 89 3 is_stmt 1 view .LVU28
+ 105              		.loc 1 89 24 is_stmt 0 view .LVU29
+ 106 004a 0296     		str	r6, [sp, #8]
+  90:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 107              		.loc 1 90 3 is_stmt 1 view .LVU30
+ 108              		.loc 1 90 24 is_stmt 0 view .LVU31
+ 109 004c 0394     		str	r4, [sp, #12]
+  91:BlueNRG-2/Target/hci_tl_interface.c ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+ 110              		.loc 1 91 3 is_stmt 1 view .LVU32
+ 111              		.loc 1 91 25 is_stmt 0 view .LVU33
+ 112 004e 0494     		str	r4, [sp, #16]
+  92:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_Init(HCI_TL_SPI_CS_PORT, &GPIO_InitStruct);
+ 113              		.loc 1 92 3 is_stmt 1 view .LVU34
+ 114 0050 01A9     		add	r1, sp, #4
+ 115 0052 2846     		mov	r0, r5
+ 116 0054 FFF7FEFF 		bl	HAL_GPIO_Init
+ 117              	.LVL4:
+  93:BlueNRG-2/Target/hci_tl_interface.c ****   /* Deselect CS PIN for BlueNRG at startup to avoid spurious commands */
+  94:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+ 118              		.loc 1 94 3 view .LVU35
+ 119 0058 3246     		mov	r2, r6
+ 120 005a 3946     		mov	r1, r7
+ 121 005c 2846     		mov	r0, r5
+ 122 005e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 123              	.LVL5:
+  95:BlueNRG-2/Target/hci_tl_interface.c **** 
+  96:BlueNRG-2/Target/hci_tl_interface.c ****   return BSP_SPI1_Init();
+ 124              		.loc 1 96 3 view .LVU36
+ 125              		.loc 1 96 10 is_stmt 0 view .LVU37
+ 126 0062 FFF7FEFF 		bl	BSP_SPI1_Init
+ 127              	.LVL6:
+  97:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 128              		.loc 1 97 1 view .LVU38
+ 129 0066 07B0     		add	sp, sp, #28
+ 130              		.cfi_def_cfa_offset 20
+ 131              		@ sp needed
+ 132 0068 F0BD     		pop	{r4, r5, r6, r7, pc}
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 5
+
+
+ 133              	.L4:
+ 134 006a 00BF     		.align	2
+ 135              	.L3:
+ 136 006c 00380240 		.word	1073887232
+ 137 0070 00000240 		.word	1073872896
+ 138              		.cfi_endproc
+ 139              	.LFE132:
+ 141              		.section	.text.HCI_TL_SPI_DeInit,"ax",%progbits
+ 142              		.align	1
+ 143              		.global	HCI_TL_SPI_DeInit
+ 144              		.syntax unified
+ 145              		.thumb
+ 146              		.thumb_func
+ 148              	HCI_TL_SPI_DeInit:
+ 149              	.LFB133:
+  98:BlueNRG-2/Target/hci_tl_interface.c **** 
+  99:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 100:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  DeInitializes the peripherals communication with the BlueNRG
+ 101:BlueNRG-2/Target/hci_tl_interface.c ****  *         Expansion Board (via SPI, I2C, USART, ...)
+ 102:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 103:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+ 104:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t 0
+ 105:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 106:BlueNRG-2/Target/hci_tl_interface.c **** int32_t HCI_TL_SPI_DeInit(void)
+ 107:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 150              		.loc 1 107 1 is_stmt 1 view -0
+ 151              		.cfi_startproc
+ 152              		@ args = 0, pretend = 0, frame = 0
+ 153              		@ frame_needed = 0, uses_anonymous_args = 0
+ 154 0000 10B5     		push	{r4, lr}
+ 155              		.cfi_def_cfa_offset 8
+ 156              		.cfi_offset 4, -8
+ 157              		.cfi_offset 14, -4
+ 108:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_DeInit(HCI_TL_SPI_EXTI_PORT, HCI_TL_SPI_EXTI_PIN);
+ 158              		.loc 1 108 3 view .LVU40
+ 159 0002 084C     		ldr	r4, .L7
+ 160 0004 0121     		movs	r1, #1
+ 161 0006 2046     		mov	r0, r4
+ 162 0008 FFF7FEFF 		bl	HAL_GPIO_DeInit
+ 163              	.LVL7:
+ 109:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_DeInit(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN);
+ 164              		.loc 1 109 3 view .LVU41
+ 165 000c 0221     		movs	r1, #2
+ 166 000e 2046     		mov	r0, r4
+ 167 0010 FFF7FEFF 		bl	HAL_GPIO_DeInit
+ 168              	.LVL8:
+ 110:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_DeInit(HCI_TL_RST_PORT, HCI_TL_RST_PIN);
+ 169              		.loc 1 110 3 view .LVU42
+ 170 0014 4FF48071 		mov	r1, #256
+ 171 0018 2046     		mov	r0, r4
+ 172 001a FFF7FEFF 		bl	HAL_GPIO_DeInit
+ 173              	.LVL9:
+ 111:BlueNRG-2/Target/hci_tl_interface.c ****   return 0;
+ 174              		.loc 1 111 3 view .LVU43
+ 112:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 175              		.loc 1 112 1 is_stmt 0 view .LVU44
+ 176 001e 0020     		movs	r0, #0
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 6
+
+
+ 177 0020 10BD     		pop	{r4, pc}
+ 178              	.L8:
+ 179 0022 00BF     		.align	2
+ 180              	.L7:
+ 181 0024 00000240 		.word	1073872896
+ 182              		.cfi_endproc
+ 183              	.LFE133:
+ 185              		.section	.text.HCI_TL_SPI_Reset,"ax",%progbits
+ 186              		.align	1
+ 187              		.global	HCI_TL_SPI_Reset
+ 188              		.syntax unified
+ 189              		.thumb
+ 190              		.thumb_func
+ 192              	HCI_TL_SPI_Reset:
+ 193              	.LFB134:
+ 113:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 114:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 115:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief Reset BlueNRG module.
+ 116:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 117:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+ 118:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t 0
+ 119:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 120:BlueNRG-2/Target/hci_tl_interface.c **** int32_t HCI_TL_SPI_Reset(void)
+ 121:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 194              		.loc 1 121 1 is_stmt 1 view -0
+ 195              		.cfi_startproc
+ 196              		@ args = 0, pretend = 0, frame = 0
+ 197              		@ frame_needed = 0, uses_anonymous_args = 0
+ 198 0000 10B5     		push	{r4, lr}
+ 199              		.cfi_def_cfa_offset 8
+ 200              		.cfi_offset 4, -8
+ 201              		.cfi_offset 14, -4
+ 122:BlueNRG-2/Target/hci_tl_interface.c ****   // Deselect CS PIN for BlueNRG to avoid spurious commands
+ 123:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+ 202              		.loc 1 123 3 view .LVU46
+ 203 0002 0D4C     		ldr	r4, .L11
+ 204 0004 0122     		movs	r2, #1
+ 205 0006 0221     		movs	r1, #2
+ 206 0008 2046     		mov	r0, r4
+ 207 000a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 208              	.LVL10:
+ 124:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 125:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_RST_PORT, HCI_TL_RST_PIN, GPIO_PIN_RESET);
+ 209              		.loc 1 125 3 view .LVU47
+ 210 000e 0022     		movs	r2, #0
+ 211 0010 4FF48071 		mov	r1, #256
+ 212 0014 2046     		mov	r0, r4
+ 213 0016 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 214              	.LVL11:
+ 126:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_Delay(5);
+ 215              		.loc 1 126 3 view .LVU48
+ 216 001a 0520     		movs	r0, #5
+ 217 001c FFF7FEFF 		bl	HAL_Delay
+ 218              	.LVL12:
+ 127:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_RST_PORT, HCI_TL_RST_PIN, GPIO_PIN_SET);
+ 219              		.loc 1 127 3 view .LVU49
+ 220 0020 0122     		movs	r2, #1
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 7
+
+
+ 221 0022 4FF48071 		mov	r1, #256
+ 222 0026 2046     		mov	r0, r4
+ 223 0028 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 224              	.LVL13:
+ 128:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_Delay(5);
+ 225              		.loc 1 128 3 view .LVU50
+ 226 002c 0520     		movs	r0, #5
+ 227 002e FFF7FEFF 		bl	HAL_Delay
+ 228              	.LVL14:
+ 129:BlueNRG-2/Target/hci_tl_interface.c ****   return 0;
+ 229              		.loc 1 129 3 view .LVU51
+ 130:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 230              		.loc 1 130 1 is_stmt 0 view .LVU52
+ 231 0032 0020     		movs	r0, #0
+ 232 0034 10BD     		pop	{r4, pc}
+ 233              	.L12:
+ 234 0036 00BF     		.align	2
+ 235              	.L11:
+ 236 0038 00000240 		.word	1073872896
+ 237              		.cfi_endproc
+ 238              	.LFE134:
+ 240              		.section	.text.IsDataAvailable,"ax",%progbits
+ 241              		.align	1
+ 242              		.syntax unified
+ 243              		.thumb
+ 244              		.thumb_func
+ 246              	IsDataAvailable:
+ 247              	.LFB137:
+ 131:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 132:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 133:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Reads from BlueNRG SPI buffer and store data into local buffer.
+ 134:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 135:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  buffer : Buffer where data from SPI are stored
+ 136:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  size   : Buffer size
+ 137:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t: Number of read bytes
+ 138:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 139:BlueNRG-2/Target/hci_tl_interface.c **** int32_t HCI_TL_SPI_Receive(uint8_t* buffer, uint16_t size)
+ 140:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 141:BlueNRG-2/Target/hci_tl_interface.c ****   uint16_t byte_count;
+ 142:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t len = 0;
+ 143:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t char_00 = 0x00;
+ 144:BlueNRG-2/Target/hci_tl_interface.c ****   volatile uint8_t read_char;
+ 145:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 146:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_master[HEADER_SIZE] = {0x0b, 0x00, 0x00, 0x00, 0x00};
+ 147:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 148:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 149:BlueNRG-2/Target/hci_tl_interface.c ****   HCI_TL_SPI_Disable_IRQ();
+ 150:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 151:BlueNRG-2/Target/hci_tl_interface.c ****   /* CS reset */
+ 152:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_RESET);
+ 153:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 154:BlueNRG-2/Target/hci_tl_interface.c ****   /* Read the header */
+ 155:BlueNRG-2/Target/hci_tl_interface.c ****   BSP_SPI1_SendRecv(header_master, header_slave, HEADER_SIZE);
+ 156:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 157:BlueNRG-2/Target/hci_tl_interface.c ****   /* device is ready */
+ 158:BlueNRG-2/Target/hci_tl_interface.c ****   byte_count = (header_slave[4] << 8)| header_slave[3];
+ 159:BlueNRG-2/Target/hci_tl_interface.c **** 
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 8
+
+
+ 160:BlueNRG-2/Target/hci_tl_interface.c ****   if(byte_count > 0)
+ 161:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 162:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 163:BlueNRG-2/Target/hci_tl_interface.c ****     /* avoid to read more data than the size of the buffer */
+ 164:BlueNRG-2/Target/hci_tl_interface.c ****     if (byte_count > size)
+ 165:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 166:BlueNRG-2/Target/hci_tl_interface.c ****       byte_count = size;
+ 167:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 168:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     for(len = 0; len < byte_count; len++)
+ 170:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 171:BlueNRG-2/Target/hci_tl_interface.c ****       BSP_SPI1_SendRecv(&char_00, (uint8_t*)&read_char, 1);
+ 172:BlueNRG-2/Target/hci_tl_interface.c ****       buffer[len] = read_char;
+ 173:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 174:BlueNRG-2/Target/hci_tl_interface.c ****   }
+ 175:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 176:BlueNRG-2/Target/hci_tl_interface.c ****   /**
+ 177:BlueNRG-2/Target/hci_tl_interface.c ****    * To be aligned to the SPI protocol.
+ 178:BlueNRG-2/Target/hci_tl_interface.c ****    * Can bring to a delay inside the frame, due to the BlueNRG-2 that needs
+ 179:BlueNRG-2/Target/hci_tl_interface.c ****    * to check if the header is received or not.
+ 180:BlueNRG-2/Target/hci_tl_interface.c ****    */
+ 181:BlueNRG-2/Target/hci_tl_interface.c ****   uint32_t tickstart = HAL_GetTick();
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 183:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 184:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 185:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 186:BlueNRG-2/Target/hci_tl_interface.c ****   }
+ 187:BlueNRG-2/Target/hci_tl_interface.c ****   HCI_TL_SPI_Enable_IRQ();
+ 188:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 189:BlueNRG-2/Target/hci_tl_interface.c ****   /* Release CS line */
+ 190:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+ 191:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 192:BlueNRG-2/Target/hci_tl_interface.c ****   return len;
+ 193:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 194:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 195:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 196:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Writes data from local buffer to SPI.
+ 197:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 198:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  buffer : data buffer to be written
+ 199:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  size   : size of first data buffer to be written
+ 200:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t: Number of read bytes
+ 201:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 202:BlueNRG-2/Target/hci_tl_interface.c **** int32_t HCI_TL_SPI_Send(uint8_t* buffer, uint16_t size)
+ 203:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 204:BlueNRG-2/Target/hci_tl_interface.c ****   int32_t result;
+ 205:BlueNRG-2/Target/hci_tl_interface.c ****   uint16_t rx_bytes;
+ 206:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 207:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_master[HEADER_SIZE] = {0x0a, 0x00, 0x00, 0x00, 0x00};
+ 208:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 209:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 210:BlueNRG-2/Target/hci_tl_interface.c ****   static uint8_t read_char_buf[MAX_BUFFER_SIZE];
+ 211:BlueNRG-2/Target/hci_tl_interface.c ****   uint32_t tickstart = HAL_GetTick();
+ 212:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 213:BlueNRG-2/Target/hci_tl_interface.c ****   HCI_TL_SPI_Disable_IRQ();
+ 214:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 215:BlueNRG-2/Target/hci_tl_interface.c ****   do
+ 216:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 9
+
+
+ 217:BlueNRG-2/Target/hci_tl_interface.c ****     uint32_t tickstart_data_available = HAL_GetTick();
+ 218:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 219:BlueNRG-2/Target/hci_tl_interface.c ****     result = 0;
+ 220:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 221:BlueNRG-2/Target/hci_tl_interface.c ****     /* CS reset */
+ 222:BlueNRG-2/Target/hci_tl_interface.c ****     HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_RESET);
+ 223:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 224:BlueNRG-2/Target/hci_tl_interface.c ****     /*
+ 225:BlueNRG-2/Target/hci_tl_interface.c ****      * Wait until BlueNRG-2 is ready.
+ 226:BlueNRG-2/Target/hci_tl_interface.c ****      * When ready it will raise the IRQ pin.
+ 227:BlueNRG-2/Target/hci_tl_interface.c ****      */
+ 228:BlueNRG-2/Target/hci_tl_interface.c ****     while(!IsDataAvailable())
+ 229:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 230:BlueNRG-2/Target/hci_tl_interface.c ****       if((HAL_GetTick() - tickstart_data_available) > TIMEOUT_DURATION)
+ 231:BlueNRG-2/Target/hci_tl_interface.c ****       {
+ 232:BlueNRG-2/Target/hci_tl_interface.c ****         result = -3;
+ 233:BlueNRG-2/Target/hci_tl_interface.c ****         break;
+ 234:BlueNRG-2/Target/hci_tl_interface.c ****       }
+ 235:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 236:BlueNRG-2/Target/hci_tl_interface.c ****     if(result == -3)
+ 237:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 238:BlueNRG-2/Target/hci_tl_interface.c ****       /* The break causes the exiting from the "while", so the CS line must be released */
+ 239:BlueNRG-2/Target/hci_tl_interface.c ****       HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+ 240:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 241:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 242:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 243:BlueNRG-2/Target/hci_tl_interface.c ****     /* Read header */
+ 244:BlueNRG-2/Target/hci_tl_interface.c ****     BSP_SPI1_SendRecv(header_master, header_slave, HEADER_SIZE);
+ 245:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 246:BlueNRG-2/Target/hci_tl_interface.c ****     rx_bytes = (((uint16_t)header_slave[2])<<8) | ((uint16_t)header_slave[1]);
+ 247:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 248:BlueNRG-2/Target/hci_tl_interface.c ****     if(rx_bytes >= size)
+ 249:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 250:BlueNRG-2/Target/hci_tl_interface.c ****       /* Buffer is big enough */
+ 251:BlueNRG-2/Target/hci_tl_interface.c ****       BSP_SPI1_SendRecv(buffer, read_char_buf, size);
+ 252:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 253:BlueNRG-2/Target/hci_tl_interface.c ****     else
+ 254:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 255:BlueNRG-2/Target/hci_tl_interface.c ****       /* Buffer is too small */
+ 256:BlueNRG-2/Target/hci_tl_interface.c ****       result = -2;
+ 257:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 258:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 259:BlueNRG-2/Target/hci_tl_interface.c ****     /* Release CS line */
+ 260:BlueNRG-2/Target/hci_tl_interface.c ****     HAL_GPIO_WritePin(HCI_TL_SPI_CS_PORT, HCI_TL_SPI_CS_PIN, GPIO_PIN_SET);
+ 261:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 262:BlueNRG-2/Target/hci_tl_interface.c ****     if((HAL_GetTick() - tickstart) > TIMEOUT_DURATION)
+ 263:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 264:BlueNRG-2/Target/hci_tl_interface.c ****       result = -3;
+ 265:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 266:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 267:BlueNRG-2/Target/hci_tl_interface.c ****   } while(result < 0);
+ 268:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 269:BlueNRG-2/Target/hci_tl_interface.c ****   /**
+ 270:BlueNRG-2/Target/hci_tl_interface.c ****    * To be aligned to the SPI protocol.
+ 271:BlueNRG-2/Target/hci_tl_interface.c ****    * Can bring to a delay inside the frame, due to the BlueNRG-2 that needs
+ 272:BlueNRG-2/Target/hci_tl_interface.c ****    * to check if the header is received or not.
+ 273:BlueNRG-2/Target/hci_tl_interface.c ****    */
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 10
+
+
+ 274:BlueNRG-2/Target/hci_tl_interface.c ****   tickstart = HAL_GetTick();
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 276:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 277:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 278:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 279:BlueNRG-2/Target/hci_tl_interface.c ****   }
+ 280:BlueNRG-2/Target/hci_tl_interface.c ****   HCI_TL_SPI_Enable_IRQ();
+ 281:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 282:BlueNRG-2/Target/hci_tl_interface.c ****   return result;
+ 283:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 284:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 285:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 286:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Reports if the BlueNRG has data for the host micro.
+ 287:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 288:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+ 289:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval int32_t: 1 if data are present, 0 otherwise
+ 290:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 291:BlueNRG-2/Target/hci_tl_interface.c **** static int32_t IsDataAvailable(void)
+ 292:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 248              		.loc 1 292 1 is_stmt 1 view -0
+ 249              		.cfi_startproc
+ 250              		@ args = 0, pretend = 0, frame = 0
+ 251              		@ frame_needed = 0, uses_anonymous_args = 0
+ 252 0000 08B5     		push	{r3, lr}
+ 253              		.cfi_def_cfa_offset 8
+ 254              		.cfi_offset 3, -8
+ 255              		.cfi_offset 14, -4
+ 293:BlueNRG-2/Target/hci_tl_interface.c ****   return (HAL_GPIO_ReadPin(HCI_TL_SPI_EXTI_PORT, HCI_TL_SPI_EXTI_PIN) == GPIO_PIN_SET);
+ 256              		.loc 1 293 3 view .LVU54
+ 257              		.loc 1 293 11 is_stmt 0 view .LVU55
+ 258 0002 0121     		movs	r1, #1
+ 259 0004 0348     		ldr	r0, .L15
+ 260 0006 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 261              	.LVL15:
+ 294:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 262              		.loc 1 294 1 view .LVU56
+ 263 000a 0128     		cmp	r0, #1
+ 264 000c 14BF     		ite	ne
+ 265 000e 0020     		movne	r0, #0
+ 266 0010 0120     		moveq	r0, #1
+ 267 0012 08BD     		pop	{r3, pc}
+ 268              	.L16:
+ 269              		.align	2
+ 270              	.L15:
+ 271 0014 00000240 		.word	1073872896
+ 272              		.cfi_endproc
+ 273              	.LFE137:
+ 275              		.section	.text.HCI_TL_SPI_Disable_IRQ,"ax",%progbits
+ 276              		.align	1
+ 277              		.syntax unified
+ 278              		.thumb
+ 279              		.thumb_func
+ 281              	HCI_TL_SPI_Disable_IRQ:
+ 282              	.LFB131:
+  57:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_DisableIRQ(HCI_TL_SPI_EXTI_IRQn);
+ 283              		.loc 1 57 1 is_stmt 1 view -0
+ 284              		.cfi_startproc
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 11
+
+
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287 0000 08B5     		push	{r3, lr}
+ 288              		.cfi_def_cfa_offset 8
+ 289              		.cfi_offset 3, -8
+ 290              		.cfi_offset 14, -4
+  58:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 291              		.loc 1 58 3 view .LVU58
+ 292 0002 0620     		movs	r0, #6
+ 293 0004 FFF7FEFF 		bl	HAL_NVIC_DisableIRQ
+ 294              	.LVL16:
+  59:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 295              		.loc 1 59 1 is_stmt 0 view .LVU59
+ 296 0008 08BD     		pop	{r3, pc}
+ 297              		.cfi_endproc
+ 298              	.LFE131:
+ 300              		.section	.text.HCI_TL_SPI_Enable_IRQ,"ax",%progbits
+ 301              		.align	1
+ 302              		.syntax unified
+ 303              		.thumb
+ 304              		.thumb_func
+ 306              	HCI_TL_SPI_Enable_IRQ:
+ 307              	.LFB130:
+  47:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_EnableIRQ(HCI_TL_SPI_EXTI_IRQn);
+ 308              		.loc 1 47 1 is_stmt 1 view -0
+ 309              		.cfi_startproc
+ 310              		@ args = 0, pretend = 0, frame = 0
+ 311              		@ frame_needed = 0, uses_anonymous_args = 0
+ 312 0000 08B5     		push	{r3, lr}
+ 313              		.cfi_def_cfa_offset 8
+ 314              		.cfi_offset 3, -8
+ 315              		.cfi_offset 14, -4
+  48:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 316              		.loc 1 48 3 view .LVU61
+ 317 0002 0620     		movs	r0, #6
+ 318 0004 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 319              	.LVL17:
+  49:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 320              		.loc 1 49 1 is_stmt 0 view .LVU62
+ 321 0008 08BD     		pop	{r3, pc}
+ 322              		.cfi_endproc
+ 323              	.LFE130:
+ 325              		.section	.text.HCI_TL_SPI_Receive,"ax",%progbits
+ 326              		.align	1
+ 327              		.global	HCI_TL_SPI_Receive
+ 328              		.syntax unified
+ 329              		.thumb
+ 330              		.thumb_func
+ 332              	HCI_TL_SPI_Receive:
+ 333              	.LVL18:
+ 334              	.LFB135:
+ 140:BlueNRG-2/Target/hci_tl_interface.c ****   uint16_t byte_count;
+ 335              		.loc 1 140 1 is_stmt 1 view -0
+ 336              		.cfi_startproc
+ 337              		@ args = 0, pretend = 0, frame = 16
+ 338              		@ frame_needed = 0, uses_anonymous_args = 0
+ 140:BlueNRG-2/Target/hci_tl_interface.c ****   uint16_t byte_count;
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 12
+
+
+ 339              		.loc 1 140 1 is_stmt 0 view .LVU64
+ 340 0000 70B5     		push	{r4, r5, r6, lr}
+ 341              		.cfi_def_cfa_offset 16
+ 342              		.cfi_offset 4, -16
+ 343              		.cfi_offset 5, -12
+ 344              		.cfi_offset 6, -8
+ 345              		.cfi_offset 14, -4
+ 346 0002 84B0     		sub	sp, sp, #16
+ 347              		.cfi_def_cfa_offset 32
+ 348 0004 0646     		mov	r6, r0
+ 349 0006 0D46     		mov	r5, r1
+ 141:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t len = 0;
+ 350              		.loc 1 141 3 is_stmt 1 view .LVU65
+ 142:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t char_00 = 0x00;
+ 351              		.loc 1 142 3 view .LVU66
+ 352              	.LVL19:
+ 143:BlueNRG-2/Target/hci_tl_interface.c ****   volatile uint8_t read_char;
+ 353              		.loc 1 143 3 view .LVU67
+ 143:BlueNRG-2/Target/hci_tl_interface.c ****   volatile uint8_t read_char;
+ 354              		.loc 1 143 11 is_stmt 0 view .LVU68
+ 355 0008 0024     		movs	r4, #0
+ 356 000a 8DF80F40 		strb	r4, [sp, #15]
+ 144:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 357              		.loc 1 144 3 is_stmt 1 view .LVU69
+ 146:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 358              		.loc 1 146 3 view .LVU70
+ 146:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 359              		.loc 1 146 11 is_stmt 0 view .LVU71
+ 360 000e 234B     		ldr	r3, .L31
+ 361 0010 93E80300 		ldm	r3, {r0, r1}
+ 362              	.LVL20:
+ 146:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 363              		.loc 1 146 11 view .LVU72
+ 364 0014 0290     		str	r0, [sp, #8]
+ 365 0016 8DF80C10 		strb	r1, [sp, #12]
+ 147:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 366              		.loc 1 147 3 is_stmt 1 view .LVU73
+ 149:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 367              		.loc 1 149 3 view .LVU74
+ 368 001a FFF7FEFF 		bl	HCI_TL_SPI_Disable_IRQ
+ 369              	.LVL21:
+ 152:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 370              		.loc 1 152 3 view .LVU75
+ 371 001e 2246     		mov	r2, r4
+ 372 0020 0221     		movs	r1, #2
+ 373 0022 1F48     		ldr	r0, .L31+4
+ 374 0024 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 375              	.LVL22:
+ 155:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 376              		.loc 1 155 3 view .LVU76
+ 377 0028 0522     		movs	r2, #5
+ 378 002a 6946     		mov	r1, sp
+ 379 002c 02A8     		add	r0, sp, #8
+ 380 002e FFF7FEFF 		bl	BSP_SPI1_SendRecv
+ 381              	.LVL23:
+ 158:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 382              		.loc 1 158 3 view .LVU77
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 13
+
+
+ 158:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 383              		.loc 1 158 29 is_stmt 0 view .LVU78
+ 384 0032 9DF80420 		ldrb	r2, [sp, #4]	@ zero_extendqisi2
+ 158:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 385              		.loc 1 158 52 view .LVU79
+ 386 0036 9DF80330 		ldrb	r3, [sp, #3]	@ zero_extendqisi2
+ 387              	.LVL24:
+ 160:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 388              		.loc 1 160 3 is_stmt 1 view .LVU80
+ 160:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 389              		.loc 1 160 5 is_stmt 0 view .LVU81
+ 390 003a 53EA0223 		orrs	r3, r3, r2, lsl #8
+ 391              	.LVL25:
+ 160:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 392              		.loc 1 160 5 view .LVU82
+ 393 003e 2BD0     		beq	.L29
+ 164:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 394              		.loc 1 164 5 is_stmt 1 view .LVU83
+ 164:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 395              		.loc 1 164 8 is_stmt 0 view .LVU84
+ 396 0040 AB42     		cmp	r3, r5
+ 397 0042 00D8     		bhi	.L23
+ 158:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 398              		.loc 1 158 14 view .LVU85
+ 399 0044 1D46     		mov	r5, r3
+ 400              	.L23:
+ 401              	.LVL26:
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 402              		.loc 1 169 5 is_stmt 1 view .LVU86
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 403              		.loc 1 169 13 is_stmt 0 view .LVU87
+ 404 0046 0024     		movs	r4, #0
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 405              		.loc 1 169 5 view .LVU88
+ 406 0048 0BE0     		b	.L24
+ 407              	.LVL27:
+ 408              	.L25:
+ 171:BlueNRG-2/Target/hci_tl_interface.c ****       buffer[len] = read_char;
+ 409              		.loc 1 171 7 is_stmt 1 discriminator 3 view .LVU89
+ 410 004a 0122     		movs	r2, #1
+ 411 004c 0DF10E01 		add	r1, sp, #14
+ 412 0050 0DF10F00 		add	r0, sp, #15
+ 413 0054 FFF7FEFF 		bl	BSP_SPI1_SendRecv
+ 414              	.LVL28:
+ 172:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 415              		.loc 1 172 7 discriminator 3 view .LVU90
+ 172:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 416              		.loc 1 172 19 is_stmt 0 discriminator 3 view .LVU91
+ 417 0058 9DF80E30 		ldrb	r3, [sp, #14]	@ zero_extendqisi2
+ 418 005c 3355     		strb	r3, [r6, r4]
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 419              		.loc 1 169 39 is_stmt 1 discriminator 3 view .LVU92
+ 420 005e 0134     		adds	r4, r4, #1
+ 421              	.LVL29:
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 422              		.loc 1 169 39 is_stmt 0 discriminator 3 view .LVU93
+ 423 0060 E4B2     		uxtb	r4, r4
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 14
+
+
+ 424              	.LVL30:
+ 425              	.L24:
+ 169:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 426              		.loc 1 169 22 is_stmt 1 discriminator 1 view .LVU94
+ 427 0062 AC42     		cmp	r4, r5
+ 428 0064 F1D3     		bcc	.L25
+ 429              	.LVL31:
+ 430              	.L22:
+ 181:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 431              		.loc 1 181 3 view .LVU95
+ 181:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 432              		.loc 1 181 24 is_stmt 0 view .LVU96
+ 433 0066 FFF7FEFF 		bl	HAL_GetTick
+ 434              	.LVL32:
+ 435 006a 0546     		mov	r5, r0
+ 436              	.LVL33:
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 437              		.loc 1 182 3 is_stmt 1 view .LVU97
+ 438              	.L26:
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 439              		.loc 1 182 38 view .LVU98
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 440              		.loc 1 182 11 is_stmt 0 view .LVU99
+ 441 006c FFF7FEFF 		bl	HAL_GetTick
+ 442              	.LVL34:
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 443              		.loc 1 182 25 view .LVU100
+ 444 0070 401B     		subs	r0, r0, r5
+ 182:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 445              		.loc 1 182 38 view .LVU101
+ 446 0072 B0F57A7F 		cmp	r0, #1000
+ 447 0076 05D2     		bcs	.L27
+ 183:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 448              		.loc 1 183 5 is_stmt 1 view .LVU102
+ 183:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 449              		.loc 1 183 9 is_stmt 0 view .LVU103
+ 450 0078 0121     		movs	r1, #1
+ 451 007a 0948     		ldr	r0, .L31+4
+ 452 007c FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 453              	.LVL35:
+ 183:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 454              		.loc 1 183 8 view .LVU104
+ 455 0080 0028     		cmp	r0, #0
+ 456 0082 F3D1     		bne	.L26
+ 457              	.L27:
+ 187:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 458              		.loc 1 187 3 is_stmt 1 view .LVU105
+ 459 0084 FFF7FEFF 		bl	HCI_TL_SPI_Enable_IRQ
+ 460              	.LVL36:
+ 190:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 461              		.loc 1 190 3 view .LVU106
+ 462 0088 0122     		movs	r2, #1
+ 463 008a 0221     		movs	r1, #2
+ 464 008c 0448     		ldr	r0, .L31+4
+ 465 008e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 466              	.LVL37:
+ 192:BlueNRG-2/Target/hci_tl_interface.c **** }
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 15
+
+
+ 467              		.loc 1 192 3 view .LVU107
+ 193:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 468              		.loc 1 193 1 is_stmt 0 view .LVU108
+ 469 0092 2046     		mov	r0, r4
+ 470 0094 04B0     		add	sp, sp, #16
+ 471              		.cfi_remember_state
+ 472              		.cfi_def_cfa_offset 16
+ 473              		@ sp needed
+ 474 0096 70BD     		pop	{r4, r5, r6, pc}
+ 475              	.LVL38:
+ 476              	.L29:
+ 477              		.cfi_restore_state
+ 142:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t char_00 = 0x00;
+ 478              		.loc 1 142 11 view .LVU109
+ 479 0098 0024     		movs	r4, #0
+ 480 009a E4E7     		b	.L22
+ 481              	.L32:
+ 482              		.align	2
+ 483              	.L31:
+ 484 009c 00000000 		.word	.LANCHOR0
+ 485 00a0 00000240 		.word	1073872896
+ 486              		.cfi_endproc
+ 487              	.LFE135:
+ 489              		.section	.text.HCI_TL_SPI_Send,"ax",%progbits
+ 490              		.align	1
+ 491              		.global	HCI_TL_SPI_Send
+ 492              		.syntax unified
+ 493              		.thumb
+ 494              		.thumb_func
+ 496              	HCI_TL_SPI_Send:
+ 497              	.LVL39:
+ 498              	.LFB136:
+ 203:BlueNRG-2/Target/hci_tl_interface.c ****   int32_t result;
+ 499              		.loc 1 203 1 is_stmt 1 view -0
+ 500              		.cfi_startproc
+ 501              		@ args = 0, pretend = 0, frame = 16
+ 502              		@ frame_needed = 0, uses_anonymous_args = 0
+ 203:BlueNRG-2/Target/hci_tl_interface.c ****   int32_t result;
+ 503              		.loc 1 203 1 is_stmt 0 view .LVU111
+ 504 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 505              		.cfi_def_cfa_offset 20
+ 506              		.cfi_offset 4, -20
+ 507              		.cfi_offset 5, -16
+ 508              		.cfi_offset 6, -12
+ 509              		.cfi_offset 7, -8
+ 510              		.cfi_offset 14, -4
+ 511 0002 85B0     		sub	sp, sp, #20
+ 512              		.cfi_def_cfa_offset 40
+ 513 0004 0746     		mov	r7, r0
+ 514 0006 0D46     		mov	r5, r1
+ 204:BlueNRG-2/Target/hci_tl_interface.c ****   uint16_t rx_bytes;
+ 515              		.loc 1 204 3 is_stmt 1 view .LVU112
+ 205:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 516              		.loc 1 205 3 view .LVU113
+ 207:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 517              		.loc 1 207 3 view .LVU114
+ 207:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 16
+
+
+ 518              		.loc 1 207 11 is_stmt 0 view .LVU115
+ 519 0008 304B     		ldr	r3, .L51
+ 520 000a 93E80300 		ldm	r3, {r0, r1}
+ 521              	.LVL40:
+ 207:BlueNRG-2/Target/hci_tl_interface.c ****   uint8_t header_slave[HEADER_SIZE];
+ 522              		.loc 1 207 11 view .LVU116
+ 523 000e 0290     		str	r0, [sp, #8]
+ 524 0010 8DF80C10 		strb	r1, [sp, #12]
+ 208:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 525              		.loc 1 208 3 is_stmt 1 view .LVU117
+ 210:BlueNRG-2/Target/hci_tl_interface.c ****   uint32_t tickstart = HAL_GetTick();
+ 526              		.loc 1 210 3 view .LVU118
+ 211:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 527              		.loc 1 211 3 view .LVU119
+ 211:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 528              		.loc 1 211 24 is_stmt 0 view .LVU120
+ 529 0014 FFF7FEFF 		bl	HAL_GetTick
+ 530              	.LVL41:
+ 531 0018 0646     		mov	r6, r0
+ 532              	.LVL42:
+ 213:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 533              		.loc 1 213 3 is_stmt 1 view .LVU121
+ 534 001a FFF7FEFF 		bl	HCI_TL_SPI_Disable_IRQ
+ 535              	.LVL43:
+ 213:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 536              		.loc 1 213 3 is_stmt 0 view .LVU122
+ 537 001e 1EE0     		b	.L40
+ 538              	.LVL44:
+ 539              	.L50:
+ 540              	.LBB3:
+ 219:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 541              		.loc 1 219 12 view .LVU123
+ 542 0020 0024     		movs	r4, #0
+ 543              	.LVL45:
+ 544              	.L35:
+ 236:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 545              		.loc 1 236 5 is_stmt 1 view .LVU124
+ 236:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 546              		.loc 1 236 7 is_stmt 0 view .LVU125
+ 547 0022 14F1030F 		cmn	r4, #3
+ 548 0026 2ED0     		beq	.L48
+ 244:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 549              		.loc 1 244 5 is_stmt 1 view .LVU126
+ 550 0028 0522     		movs	r2, #5
+ 551 002a 6946     		mov	r1, sp
+ 552 002c 02A8     		add	r0, sp, #8
+ 553 002e FFF7FEFF 		bl	BSP_SPI1_SendRecv
+ 554              	.LVL46:
+ 246:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 555              		.loc 1 246 5 view .LVU127
+ 246:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 556              		.loc 1 246 40 is_stmt 0 view .LVU128
+ 557 0032 9DF80220 		ldrb	r2, [sp, #2]	@ zero_extendqisi2
+ 246:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 558              		.loc 1 246 74 view .LVU129
+ 559 0036 9DF80130 		ldrb	r3, [sp, #1]	@ zero_extendqisi2
+ 246:BlueNRG-2/Target/hci_tl_interface.c **** 
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 17
+
+
+ 560              		.loc 1 246 14 view .LVU130
+ 561 003a 43EA0223 		orr	r3, r3, r2, lsl #8
+ 562              	.LVL47:
+ 248:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 563              		.loc 1 248 5 is_stmt 1 view .LVU131
+ 248:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 564              		.loc 1 248 7 is_stmt 0 view .LVU132
+ 565 003e AB42     		cmp	r3, r5
+ 566 0040 3AD2     		bcs	.L49
+ 256:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 567              		.loc 1 256 14 view .LVU133
+ 568 0042 6FF00104 		mvn	r4, #1
+ 569              	.LVL48:
+ 570              	.L39:
+ 260:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 571              		.loc 1 260 5 is_stmt 1 view .LVU134
+ 572 0046 0122     		movs	r2, #1
+ 573 0048 0221     		movs	r1, #2
+ 574 004a 2148     		ldr	r0, .L51+4
+ 575 004c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 576              	.LVL49:
+ 262:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 577              		.loc 1 262 5 view .LVU135
+ 262:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 578              		.loc 1 262 9 is_stmt 0 view .LVU136
+ 579 0050 FFF7FEFF 		bl	HAL_GetTick
+ 580              	.LVL50:
+ 262:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 581              		.loc 1 262 23 view .LVU137
+ 582 0054 801B     		subs	r0, r0, r6
+ 262:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 583              		.loc 1 262 7 view .LVU138
+ 584 0056 6428     		cmp	r0, #100
+ 585 0058 34D8     		bhi	.L46
+ 586              	.LBE3:
+ 267:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 587              		.loc 1 267 18 is_stmt 1 view .LVU139
+ 588 005a 002C     		cmp	r4, #0
+ 589 005c 18DA     		bge	.L38
+ 590              	.LVL51:
+ 591              	.L40:
+ 215:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 592              		.loc 1 215 3 view .LVU140
+ 593              	.LBB4:
+ 217:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 594              		.loc 1 217 5 view .LVU141
+ 217:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 595              		.loc 1 217 41 is_stmt 0 view .LVU142
+ 596 005e FFF7FEFF 		bl	HAL_GetTick
+ 597              	.LVL52:
+ 598 0062 0446     		mov	r4, r0
+ 599              	.LVL53:
+ 219:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 600              		.loc 1 219 5 is_stmt 1 view .LVU143
+ 222:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 601              		.loc 1 222 5 view .LVU144
+ 602 0064 0022     		movs	r2, #0
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 18
+
+
+ 603 0066 0221     		movs	r1, #2
+ 604 0068 1948     		ldr	r0, .L51+4
+ 605              	.LVL54:
+ 222:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 606              		.loc 1 222 5 is_stmt 0 view .LVU145
+ 607 006a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 608              	.LVL55:
+ 228:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 609              		.loc 1 228 5 is_stmt 1 view .LVU146
+ 610              	.L34:
+ 228:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 611              		.loc 1 228 11 view .LVU147
+ 228:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 612              		.loc 1 228 12 is_stmt 0 view .LVU148
+ 613 006e FFF7FEFF 		bl	IsDataAvailable
+ 614              	.LVL56:
+ 228:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 615              		.loc 1 228 11 view .LVU149
+ 616 0072 0028     		cmp	r0, #0
+ 617 0074 D4D1     		bne	.L50
+ 230:BlueNRG-2/Target/hci_tl_interface.c ****       {
+ 618              		.loc 1 230 7 is_stmt 1 view .LVU150
+ 230:BlueNRG-2/Target/hci_tl_interface.c ****       {
+ 619              		.loc 1 230 11 is_stmt 0 view .LVU151
+ 620 0076 FFF7FEFF 		bl	HAL_GetTick
+ 621              	.LVL57:
+ 230:BlueNRG-2/Target/hci_tl_interface.c ****       {
+ 622              		.loc 1 230 25 view .LVU152
+ 623 007a 001B     		subs	r0, r0, r4
+ 230:BlueNRG-2/Target/hci_tl_interface.c ****       {
+ 624              		.loc 1 230 9 view .LVU153
+ 625 007c 6428     		cmp	r0, #100
+ 626 007e F6D9     		bls	.L34
+ 232:BlueNRG-2/Target/hci_tl_interface.c ****         break;
+ 627              		.loc 1 232 16 view .LVU154
+ 628 0080 6FF00204 		mvn	r4, #2
+ 629              	.LVL58:
+ 232:BlueNRG-2/Target/hci_tl_interface.c ****         break;
+ 630              		.loc 1 232 16 view .LVU155
+ 631 0084 CDE7     		b	.L35
+ 632              	.LVL59:
+ 633              	.L48:
+ 239:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 634              		.loc 1 239 7 is_stmt 1 view .LVU156
+ 635 0086 0122     		movs	r2, #1
+ 636 0088 0221     		movs	r1, #2
+ 637 008a 1148     		ldr	r0, .L51+4
+ 638 008c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 639              	.LVL60:
+ 240:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 640              		.loc 1 240 7 view .LVU157
+ 641              	.L38:
+ 240:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 642              		.loc 1 240 7 is_stmt 0 view .LVU158
+ 643              	.LBE4:
+ 274:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 644              		.loc 1 274 3 is_stmt 1 view .LVU159
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 19
+
+
+ 274:BlueNRG-2/Target/hci_tl_interface.c ****   while ((HAL_GetTick() - tickstart) < TIMEOUT_IRQ_HIGH) {
+ 645              		.loc 1 274 15 is_stmt 0 view .LVU160
+ 646 0090 FFF7FEFF 		bl	HAL_GetTick
+ 647              	.LVL61:
+ 648 0094 0546     		mov	r5, r0
+ 649              	.LVL62:
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 650              		.loc 1 275 3 is_stmt 1 view .LVU161
+ 651              	.L41:
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 652              		.loc 1 275 38 view .LVU162
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 653              		.loc 1 275 11 is_stmt 0 view .LVU163
+ 654 0096 FFF7FEFF 		bl	HAL_GetTick
+ 655              	.LVL63:
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 656              		.loc 1 275 25 view .LVU164
+ 657 009a 401B     		subs	r0, r0, r5
+ 275:BlueNRG-2/Target/hci_tl_interface.c ****     if (HAL_GPIO_ReadPin(HCI_TL_SPI_IRQ_PORT, HCI_TL_SPI_IRQ_PIN)==GPIO_PIN_RESET) {
+ 658              		.loc 1 275 38 view .LVU165
+ 659 009c B0F57A7F 		cmp	r0, #1000
+ 660 00a0 05D2     		bcs	.L42
+ 276:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 661              		.loc 1 276 5 is_stmt 1 view .LVU166
+ 276:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 662              		.loc 1 276 9 is_stmt 0 view .LVU167
+ 663 00a2 0121     		movs	r1, #1
+ 664 00a4 0A48     		ldr	r0, .L51+4
+ 665 00a6 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 666              	.LVL64:
+ 276:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 667              		.loc 1 276 8 view .LVU168
+ 668 00aa 0028     		cmp	r0, #0
+ 669 00ac F3D1     		bne	.L41
+ 670              	.L42:
+ 280:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 671              		.loc 1 280 3 is_stmt 1 view .LVU169
+ 672 00ae FFF7FEFF 		bl	HCI_TL_SPI_Enable_IRQ
+ 673              	.LVL65:
+ 282:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 674              		.loc 1 282 3 view .LVU170
+ 283:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 675              		.loc 1 283 1 is_stmt 0 view .LVU171
+ 676 00b2 2046     		mov	r0, r4
+ 677 00b4 05B0     		add	sp, sp, #20
+ 678              		.cfi_remember_state
+ 679              		.cfi_def_cfa_offset 20
+ 680              		@ sp needed
+ 681 00b6 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 682              	.LVL66:
+ 683              	.L49:
+ 684              		.cfi_restore_state
+ 685              	.LBB5:
+ 251:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 686              		.loc 1 251 7 is_stmt 1 view .LVU172
+ 687 00b8 2A46     		mov	r2, r5
+ 688 00ba 0649     		ldr	r1, .L51+8
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 20
+
+
+ 689 00bc 3846     		mov	r0, r7
+ 690 00be FFF7FEFF 		bl	BSP_SPI1_SendRecv
+ 691              	.LVL67:
+ 251:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 692              		.loc 1 251 7 is_stmt 0 view .LVU173
+ 693 00c2 C0E7     		b	.L39
+ 694              	.L46:
+ 264:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 695              		.loc 1 264 14 view .LVU174
+ 696 00c4 6FF00204 		mvn	r4, #2
+ 697              	.LVL68:
+ 264:BlueNRG-2/Target/hci_tl_interface.c ****       break;
+ 698              		.loc 1 264 14 view .LVU175
+ 699 00c8 E2E7     		b	.L38
+ 700              	.L52:
+ 701 00ca 00BF     		.align	2
+ 702              	.L51:
+ 703 00cc 08000000 		.word	.LANCHOR0+8
+ 704 00d0 00000240 		.word	1073872896
+ 705 00d4 00000000 		.word	read_char_buf.0
+ 706              	.LBE5:
+ 707              		.cfi_endproc
+ 708              	.LFE136:
+ 710              		.section	.text.hci_tl_lowlevel_isr,"ax",%progbits
+ 711              		.align	1
+ 712              		.global	hci_tl_lowlevel_isr
+ 713              		.syntax unified
+ 714              		.thumb
+ 715              		.thumb_func
+ 717              	hci_tl_lowlevel_isr:
+ 718              	.LFB139:
+ 295:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 296:BlueNRG-2/Target/hci_tl_interface.c **** /***************************** hci_tl_interface main functions *****************************/
+ 297:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 298:BlueNRG-2/Target/hci_tl_interface.c ****  * @brief  Register hci_tl_interface IO bus services
+ 299:BlueNRG-2/Target/hci_tl_interface.c ****  *
+ 300:BlueNRG-2/Target/hci_tl_interface.c ****  * @param  None
+ 301:BlueNRG-2/Target/hci_tl_interface.c ****  * @retval None
+ 302:BlueNRG-2/Target/hci_tl_interface.c ****  */
+ 303:BlueNRG-2/Target/hci_tl_interface.c **** void hci_tl_lowlevel_init(void)
+ 304:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 305:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE BEGIN hci_tl_lowlevel_init 1 */
+ 306:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 307:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE END hci_tl_lowlevel_init 1 */
+ 308:BlueNRG-2/Target/hci_tl_interface.c ****   tHciIO fops;
+ 309:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 310:BlueNRG-2/Target/hci_tl_interface.c ****   /* Register IO bus services */
+ 311:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Init    = HCI_TL_SPI_Init;
+ 312:BlueNRG-2/Target/hci_tl_interface.c ****   fops.DeInit  = HCI_TL_SPI_DeInit;
+ 313:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Send    = HCI_TL_SPI_Send;
+ 314:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Receive = HCI_TL_SPI_Receive;
+ 315:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Reset   = HCI_TL_SPI_Reset;
+ 316:BlueNRG-2/Target/hci_tl_interface.c ****   fops.GetTick = BSP_GetTick;
+ 317:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 318:BlueNRG-2/Target/hci_tl_interface.c ****   hci_register_io_bus (&fops);
+ 319:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 320:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE BEGIN hci_tl_lowlevel_init 2 */
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 21
+
+
+ 321:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 322:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE END hci_tl_lowlevel_init 2 */
+ 323:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 324:BlueNRG-2/Target/hci_tl_interface.c ****   /* Register event irq handler */
+ 325:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_EXTI_GetHandle(&hexti0, EXTI_LINE_0);
+ 326:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_EXTI_RegisterCallback(&hexti0, HAL_EXTI_COMMON_CB_ID, hci_tl_lowlevel_isr);
+ 327:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+ 328:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+ 329:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 330:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE BEGIN hci_tl_lowlevel_init 3 */
+ 331:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 332:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE END hci_tl_lowlevel_init 3 */
+ 333:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 334:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 335:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 336:BlueNRG-2/Target/hci_tl_interface.c **** /**
+ 337:BlueNRG-2/Target/hci_tl_interface.c ****   * @brief HCI Transport Layer Low Level Interrupt Service Routine
+ 338:BlueNRG-2/Target/hci_tl_interface.c ****   *
+ 339:BlueNRG-2/Target/hci_tl_interface.c ****   * @param  None
+ 340:BlueNRG-2/Target/hci_tl_interface.c ****   * @retval None
+ 341:BlueNRG-2/Target/hci_tl_interface.c ****   */
+ 342:BlueNRG-2/Target/hci_tl_interface.c **** void hci_tl_lowlevel_isr(void)
+ 343:BlueNRG-2/Target/hci_tl_interface.c **** {
+ 719              		.loc 1 343 1 is_stmt 1 view -0
+ 720              		.cfi_startproc
+ 721              		@ args = 0, pretend = 0, frame = 0
+ 722              		@ frame_needed = 0, uses_anonymous_args = 0
+ 723 0000 08B5     		push	{r3, lr}
+ 724              		.cfi_def_cfa_offset 8
+ 725              		.cfi_offset 3, -8
+ 726              		.cfi_offset 14, -4
+ 344:BlueNRG-2/Target/hci_tl_interface.c ****   /* Call hci_notify_asynch_evt() */
+ 345:BlueNRG-2/Target/hci_tl_interface.c ****   while(IsDataAvailable())
+ 727              		.loc 1 345 3 view .LVU177
+ 728              	.L54:
+ 729              		.loc 1 345 9 view .LVU178
+ 730 0002 FFF7FEFF 		bl	IsDataAvailable
+ 731              	.LVL69:
+ 732 0006 20B1     		cbz	r0, .L53
+ 346:BlueNRG-2/Target/hci_tl_interface.c ****   {
+ 347:BlueNRG-2/Target/hci_tl_interface.c ****     if (hci_notify_asynch_evt(NULL))
+ 733              		.loc 1 347 5 view .LVU179
+ 734              		.loc 1 347 9 is_stmt 0 view .LVU180
+ 735 0008 0020     		movs	r0, #0
+ 736 000a FFF7FEFF 		bl	hci_notify_asynch_evt
+ 737              	.LVL70:
+ 738              		.loc 1 347 8 view .LVU181
+ 739 000e 0028     		cmp	r0, #0
+ 740 0010 F7D0     		beq	.L54
+ 741              	.L53:
+ 348:BlueNRG-2/Target/hci_tl_interface.c ****     {
+ 349:BlueNRG-2/Target/hci_tl_interface.c ****       return;
+ 350:BlueNRG-2/Target/hci_tl_interface.c ****     }
+ 351:BlueNRG-2/Target/hci_tl_interface.c ****   }
+ 352:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 353:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE BEGIN hci_tl_lowlevel_isr */
+ 354:BlueNRG-2/Target/hci_tl_interface.c **** 
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 22
+
+
+ 355:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE END hci_tl_lowlevel_isr */
+ 356:BlueNRG-2/Target/hci_tl_interface.c **** }
+ 742              		.loc 1 356 1 view .LVU182
+ 743 0012 08BD     		pop	{r3, pc}
+ 744              		.cfi_endproc
+ 745              	.LFE139:
+ 747              		.section	.text.hci_tl_lowlevel_init,"ax",%progbits
+ 748              		.align	1
+ 749              		.global	hci_tl_lowlevel_init
+ 750              		.syntax unified
+ 751              		.thumb
+ 752              		.thumb_func
+ 754              	hci_tl_lowlevel_init:
+ 755              	.LFB138:
+ 304:BlueNRG-2/Target/hci_tl_interface.c ****   /* USER CODE BEGIN hci_tl_lowlevel_init 1 */
+ 756              		.loc 1 304 1 is_stmt 1 view -0
+ 757              		.cfi_startproc
+ 758              		@ args = 0, pretend = 0, frame = 32
+ 759              		@ frame_needed = 0, uses_anonymous_args = 0
+ 760 0000 10B5     		push	{r4, lr}
+ 761              		.cfi_def_cfa_offset 8
+ 762              		.cfi_offset 4, -8
+ 763              		.cfi_offset 14, -4
+ 764 0002 88B0     		sub	sp, sp, #32
+ 765              		.cfi_def_cfa_offset 40
+ 308:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 766              		.loc 1 308 3 view .LVU184
+ 311:BlueNRG-2/Target/hci_tl_interface.c ****   fops.DeInit  = HCI_TL_SPI_DeInit;
+ 767              		.loc 1 311 3 view .LVU185
+ 311:BlueNRG-2/Target/hci_tl_interface.c ****   fops.DeInit  = HCI_TL_SPI_DeInit;
+ 768              		.loc 1 311 16 is_stmt 0 view .LVU186
+ 769 0004 114B     		ldr	r3, .L60
+ 770 0006 0193     		str	r3, [sp, #4]
+ 312:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Send    = HCI_TL_SPI_Send;
+ 771              		.loc 1 312 3 is_stmt 1 view .LVU187
+ 312:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Send    = HCI_TL_SPI_Send;
+ 772              		.loc 1 312 16 is_stmt 0 view .LVU188
+ 773 0008 114B     		ldr	r3, .L60+4
+ 774 000a 0293     		str	r3, [sp, #8]
+ 313:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Receive = HCI_TL_SPI_Receive;
+ 775              		.loc 1 313 3 is_stmt 1 view .LVU189
+ 313:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Receive = HCI_TL_SPI_Receive;
+ 776              		.loc 1 313 16 is_stmt 0 view .LVU190
+ 777 000c 114B     		ldr	r3, .L60+8
+ 778 000e 0593     		str	r3, [sp, #20]
+ 314:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Reset   = HCI_TL_SPI_Reset;
+ 779              		.loc 1 314 3 is_stmt 1 view .LVU191
+ 314:BlueNRG-2/Target/hci_tl_interface.c ****   fops.Reset   = HCI_TL_SPI_Reset;
+ 780              		.loc 1 314 16 is_stmt 0 view .LVU192
+ 781 0010 114B     		ldr	r3, .L60+12
+ 782 0012 0493     		str	r3, [sp, #16]
+ 315:BlueNRG-2/Target/hci_tl_interface.c ****   fops.GetTick = BSP_GetTick;
+ 783              		.loc 1 315 3 is_stmt 1 view .LVU193
+ 315:BlueNRG-2/Target/hci_tl_interface.c ****   fops.GetTick = BSP_GetTick;
+ 784              		.loc 1 315 16 is_stmt 0 view .LVU194
+ 785 0014 114B     		ldr	r3, .L60+16
+ 786 0016 0393     		str	r3, [sp, #12]
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 23
+
+
+ 316:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 787              		.loc 1 316 3 is_stmt 1 view .LVU195
+ 316:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 788              		.loc 1 316 16 is_stmt 0 view .LVU196
+ 789 0018 114B     		ldr	r3, .L60+20
+ 790 001a 0793     		str	r3, [sp, #28]
+ 318:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 791              		.loc 1 318 3 is_stmt 1 view .LVU197
+ 792 001c 01A8     		add	r0, sp, #4
+ 793 001e FFF7FEFF 		bl	hci_register_io_bus
+ 794              	.LVL71:
+ 325:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_EXTI_RegisterCallback(&hexti0, HAL_EXTI_COMMON_CB_ID, hci_tl_lowlevel_isr);
+ 795              		.loc 1 325 3 view .LVU198
+ 796 0022 104C     		ldr	r4, .L60+24
+ 797 0024 4FF0C061 		mov	r1, #100663296
+ 798 0028 2046     		mov	r0, r4
+ 799 002a FFF7FEFF 		bl	HAL_EXTI_GetHandle
+ 800              	.LVL72:
+ 326:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+ 801              		.loc 1 326 3 view .LVU199
+ 802 002e 0E4A     		ldr	r2, .L60+28
+ 803 0030 0021     		movs	r1, #0
+ 804 0032 2046     		mov	r0, r4
+ 805 0034 FFF7FEFF 		bl	HAL_EXTI_RegisterCallback
+ 806              	.LVL73:
+ 327:BlueNRG-2/Target/hci_tl_interface.c ****   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+ 807              		.loc 1 327 3 view .LVU200
+ 808 0038 0022     		movs	r2, #0
+ 809 003a 1146     		mov	r1, r2
+ 810 003c 0620     		movs	r0, #6
+ 811 003e FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 812              	.LVL74:
+ 328:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 813              		.loc 1 328 3 view .LVU201
+ 814 0042 0620     		movs	r0, #6
+ 815 0044 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 816              	.LVL75:
+ 334:BlueNRG-2/Target/hci_tl_interface.c **** 
+ 817              		.loc 1 334 1 is_stmt 0 view .LVU202
+ 818 0048 08B0     		add	sp, sp, #32
+ 819              		.cfi_def_cfa_offset 8
+ 820              		@ sp needed
+ 821 004a 10BD     		pop	{r4, pc}
+ 822              	.L61:
+ 823              		.align	2
+ 824              	.L60:
+ 825 004c 00000000 		.word	HCI_TL_SPI_Init
+ 826 0050 00000000 		.word	HCI_TL_SPI_DeInit
+ 827 0054 00000000 		.word	HCI_TL_SPI_Send
+ 828 0058 00000000 		.word	HCI_TL_SPI_Receive
+ 829 005c 00000000 		.word	HCI_TL_SPI_Reset
+ 830 0060 00000000 		.word	BSP_GetTick
+ 831 0064 00000000 		.word	hexti0
+ 832 0068 00000000 		.word	hci_tl_lowlevel_isr
+ 833              		.cfi_endproc
+ 834              	.LFE138:
+ 836              		.section	.bss.read_char_buf.0,"aw",%nobits
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 24
+
+
+ 837              		.align	2
+ 840              	read_char_buf.0:
+ 841 0000 00000000 		.space	255
+ 841      00000000 
+ 841      00000000 
+ 841      00000000 
+ 841      00000000 
+ 842              		.global	hexti0
+ 843              		.section	.bss.hexti0,"aw",%nobits
+ 844              		.align	2
+ 847              	hexti0:
+ 848 0000 00000000 		.space	8
+ 848      00000000 
+ 849              		.section	.rodata
+ 850              		.align	2
+ 851              		.set	.LANCHOR0,. + 0
+ 852              	.LC0:
+ 853 0000 0B000000 		.ascii	"\013\000\000\000\000"
+ 853      00
+ 854 0005 000000   		.space	3
+ 855              	.LC1:
+ 856 0008 0A000000 		.ascii	"\012\000\000\000\000"
+ 856      00
+ 857              		.text
+ 858              	.Letext0:
+ 859              		.file 2 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 860              		.file 3 "c:\\users\\zafee\\appdata\\roaming\\code - insiders\\user\\globalstorage\\bmd.stm32-for-v
+ 861              		.file 4 "c:\\users\\zafee\\appdata\\roaming\\code - insiders\\user\\globalstorage\\bmd.stm32-for-v
+ 862              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 863              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
+ 864              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_exti.h"
+ 865              		.file 8 "Middlewares/ST/BlueNRG-2/hci/hci_tl_patterns/Basic/hci_tl.h"
+ 866              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
+ 867              		.file 10 "Core/Inc/stm32f4xx_nucleo_bus.h"
+ 868              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ 869              		.file 12 "BlueNRG-2/Target/hci_tl_interface.h"
+ARM GAS  C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s 			page 25
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 hci_tl_interface.c
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:21     .text.HCI_TL_SPI_Init:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:27     .text.HCI_TL_SPI_Init:00000000 HCI_TL_SPI_Init
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:136    .text.HCI_TL_SPI_Init:0000006c $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:142    .text.HCI_TL_SPI_DeInit:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:148    .text.HCI_TL_SPI_DeInit:00000000 HCI_TL_SPI_DeInit
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:181    .text.HCI_TL_SPI_DeInit:00000024 $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:186    .text.HCI_TL_SPI_Reset:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:192    .text.HCI_TL_SPI_Reset:00000000 HCI_TL_SPI_Reset
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:236    .text.HCI_TL_SPI_Reset:00000038 $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:241    .text.IsDataAvailable:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:246    .text.IsDataAvailable:00000000 IsDataAvailable
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:271    .text.IsDataAvailable:00000014 $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:276    .text.HCI_TL_SPI_Disable_IRQ:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:281    .text.HCI_TL_SPI_Disable_IRQ:00000000 HCI_TL_SPI_Disable_IRQ
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:301    .text.HCI_TL_SPI_Enable_IRQ:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:306    .text.HCI_TL_SPI_Enable_IRQ:00000000 HCI_TL_SPI_Enable_IRQ
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:326    .text.HCI_TL_SPI_Receive:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:332    .text.HCI_TL_SPI_Receive:00000000 HCI_TL_SPI_Receive
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:484    .text.HCI_TL_SPI_Receive:0000009c $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:490    .text.HCI_TL_SPI_Send:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:496    .text.HCI_TL_SPI_Send:00000000 HCI_TL_SPI_Send
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:703    .text.HCI_TL_SPI_Send:000000cc $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:840    .bss.read_char_buf.0:00000000 read_char_buf.0
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:711    .text.hci_tl_lowlevel_isr:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:717    .text.hci_tl_lowlevel_isr:00000000 hci_tl_lowlevel_isr
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:748    .text.hci_tl_lowlevel_init:00000000 $t
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:754    .text.hci_tl_lowlevel_init:00000000 hci_tl_lowlevel_init
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:825    .text.hci_tl_lowlevel_init:0000004c $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:847    .bss.hexti0:00000000 hexti0
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:837    .bss.read_char_buf.0:00000000 $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:844    .bss.hexti0:00000000 $d
+C:\Users\zafee\AppData\Local\Temp\ccJcaJtR.s:850    .rodata:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_Init
+HAL_GPIO_WritePin
+BSP_SPI1_Init
+HAL_GPIO_DeInit
+HAL_Delay
+HAL_GPIO_ReadPin
+HAL_NVIC_DisableIRQ
+HAL_NVIC_EnableIRQ
+BSP_SPI1_SendRecv
+HAL_GetTick
+hci_notify_asynch_evt
+hci_register_io_bus
+HAL_EXTI_GetHandle
+HAL_EXTI_RegisterCallback
+HAL_NVIC_SetPriority
+BSP_GetTick

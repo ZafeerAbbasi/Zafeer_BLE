@@ -1,17 +1,3 @@
-/*
-# ##############################################################################
-# File: main.c                                                                 #
-# Project: Src                                                                 #
-# Created Date: Sunday, October 22nd 2023, 12:56:40 pm                         #
-# Author: Zafeer Abbasi                                                        #
-# ----------------------------------------------                               #
-# Last Modified: Sunday, October 22nd 2023, 1:15:10 pm                         #
-# Modified By: Zafeer Abbasi                                                   #
-# ----------------------------------------------                               #
-# Copyright (c) 2023 Zafeer.A                                                  #
-# ----------------------------------------------                               #
-# HISTORY:                                                                     #
- */
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -101,7 +87,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  
   /* USER CODE BEGIN 2 */
 
   /*1. Enable BLE Module*/
