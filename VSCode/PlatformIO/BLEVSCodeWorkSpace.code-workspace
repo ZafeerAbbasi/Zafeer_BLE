@@ -30,7 +30,9 @@
 			"etharp.h": "c",
 			"memp.h": "c",
 			"httpd.h": "c",
-			"usr05_cgi_process.h": "c"
+			"usr05_cgi_process.h": "c",
+			"app_bluenrg.h": "c",
+			"link_layer.h": "c"
 		}
 	}
 }
