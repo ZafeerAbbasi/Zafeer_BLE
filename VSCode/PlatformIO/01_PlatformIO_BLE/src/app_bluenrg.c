@@ -18,6 +18,7 @@
 /*##############################################################################################################################################*/
 
 #include "app_bluenrg.h"
+#include "main.h"
 
 /*##############################################################################################################################################*/
 /*FUNCTION DECLARATIONS_________________________________________________________________________________________________________________________*/
@@ -136,7 +137,7 @@ void blueNRG_init( void )
         0, 
         strlen( deviceName ), 
         ( uint8_t * )deviceName
-        );
+    );
     if( ret != BLE_STATUS_SUCCESS )
     {
         printf( " ACI GATT Characteristic Value Update: FAILED !! \r\n " );
@@ -149,6 +150,25 @@ void blueNRG_init( void )
 void blueNRG_process( void )
 {
     tBleStatus ret;
+    uint8_t localName = { AD_TYPE_COMPLETE_LOCAL_NAME, 'B', 'L', 'E', '-', 'G', '-', 'U', 'P' };
 
     /*Set Device In General Discoverable Mode*/
+    ret = aci_gap_set_limited_discoverable(
+        ADV_IND, 
+        0,
+        0,
+        PUBLIC_ADDR,
+        NO_WHITE_LIST_USE,
+        sizeof( localName ),
+        localName,
+        0, 
+        NULL,
+        0, 
+        0
+    );
+    if( ret != BLE_STATUS_SUCCESS )
+    {
+        printf( " ACI GAP Set Discoverable: FAILED !! \r\n " );
+    }
+
 }
