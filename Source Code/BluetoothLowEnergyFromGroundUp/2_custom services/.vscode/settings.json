@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "bluenrg_conf.h": "c"
+        "bluenrg_conf.h": "c",
+        "bluenrg1_gap.h": "c",
+        "services.h": "c"
     }
 }

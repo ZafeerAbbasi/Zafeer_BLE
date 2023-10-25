@@ -1,7 +1,7 @@
 {
 	"folders": [
 		{
-			"path": "01_PlatformIO_BLE"
+			"path": "02_Custom_Service"
 		}
 	],
 	"settings": {
@@ -32,7 +32,11 @@
 			"httpd.h": "c",
 			"usr05_cgi_process.h": "c",
 			"app_bluenrg.h": "c",
-			"link_layer.h": "c"
+			"link_layer.h": "c",
+			"bluenrg_conf.h": "c",
+			"gpio.h": "c",
+			"usart.h": "c",
+			"hci_tl_interface.h": "c"
 		}
 	}
 }
