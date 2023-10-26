@@ -1,11 +1,11 @@
 /*
 # ##############################################################################
-# File: services.c                                                             #
-# Project: src                                                                 #
-# Created Date: Tuesday, October 24th 2023, 9:41:38 pm                         #
+# File: app_bluenrg.h                                                          #
+# Project: include                                                             #
+# Created Date: Sunday, October 22nd 2023, 7:13:02 pm                          #
 # Author: Zafeer Abbasi                                                        #
 # ----------------------------------------------                               #
-# Last Modified: Wednesday, October 25th 2023, 7:57:01 pm                      #
+# Last Modified: Tuesday, October 24th 2023, 8:05:58 pm                        #
 # Modified By: Zafeer Abbasi                                                   #
 # ----------------------------------------------                               #
 # Copyright (c) 2023 Zafeer.A                                                  #
@@ -13,30 +13,37 @@
 # HISTORY:                                                                     #
  */
 
+#ifndef INC_APP_BLUE_NRG_H
+#define INC_APP_BLUE_NRG_H
+
 /*##############################################################################################################################################*/
 /*INCLUDES______________________________________________________________________________________________________________________________________*/
 /*##############################################################################################################################################*/
 
+#include "bluenrg_conf.h"
+#include "hci.h"
+#include "bluenrg1_types.h"
 #include "bluenrg1_gap.h"
-#include "bluenrg1_gatt_aci.h"
-#include "services.h"
+#include "bluenrg1_aci.h"
+#include "bluenrg1_hci_le.h"
+#include "hci_const.h"
+#include "hci_tl.h"
 
 /*##############################################################################################################################################*/
 /*FUNCTION DECLARATIONS_________________________________________________________________________________________________________________________*/
 /*##############################################################################################################################################*/
 
+void blueNRG_init( void );
+void blueNRG_process( void );
 
+// void bluenrg_init(void);
+// void bluenrg_process(void);
 
 /*##############################################################################################################################################*/
 /*GLOBALS_______________________________________________________________________________________________________________________________________*/
 /*##############################################################################################################################################*/
 
-/*128-bit UUID ( Randomly Generated )*/
-const uint8_t SERVICE_UUID[ 16 ]    = {0x66,0x9a,0x0c,0x20,0x00,0x08,0x96,0x9e,0xe2,0x11,0x9e,0xb1,0xe0,0xf2,0x73,0xd9};
-const uint8_t CHAR_UUID[ 16 ]       = {0x66,0x9a,0x0c,0x20,0x00,0x08,0x96,0x9e,0xe2,0x11,0x9e,0xb1,0xe1,0xf2,0x73,0xd9};
 
-
-uint16_t customServiceHdl, customCharacteristicHdl;
 
 /*##############################################################################################################################################*/
 /*DEFINES_______________________________________________________________________________________________________________________________________*/
@@ -60,48 +67,5 @@ uint16_t customServiceHdl, customCharacteristicHdl;
 /*FUNCTIONS_____________________________________________________________________________________________________________________________________*/
 /*##############################################################################################################################################*/
 
-tBleStatus service_AddService( void )
-{
-    tBleStatus ret;
-    
-    Service_UUID_t  serviceUUID;
-    Char_UUID_t     characteristicUUID;
-    char *name =  "Zafeer";
-        
-    memcpy( serviceUUID.Service_UUID_128, SERVICE_UUID , sizeof( SERVICE_UUID ) );
-    memcpy( characteristicUUID.Char_UUID_128, CHAR_UUID, sizeof( CHAR_UUID ) );
 
-    /*Add Service*/
-    ret = aci_gatt_add_service(
-        UUID_TYPE_128,
-        &serviceUUID,
-        PRIMARY_SERVICE,
-        7,
-        &customServiceHdl
-    );
-
-    /*Add Characteristic*/
-    ret = aci_gatt_add_char( 
-        customServiceHdl,
-        UUID_TYPE_128,
-        &characteristicUUID,
-        10,
-        CHAR_PROP_NOTIFY | CHAR_PROP_READ,
-        ATTR_PERMISSION_NONE,
-        GATT_DONT_NOTIFY_EVENTS,
-        0,
-        0,
-        &customCharacteristicHdl
-    );
-
-    aci_gatt_update_char_value(
-        customServiceHdl,
-        customCharacteristicHdl,
-        0,
-        strlen( name ),
-        ( uint8_t * )name
-    );
-    
-
-    return ret;
-}
+#endif

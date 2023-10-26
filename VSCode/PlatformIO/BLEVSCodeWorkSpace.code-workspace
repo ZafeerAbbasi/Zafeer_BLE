@@ -1,7 +1,7 @@
 {
 	"folders": [
 		{
-			"path": "03_Custom_Characteristics"
+			"path": "04_SendingDataToClient"
 		}
 	],
 	"settings": {
@@ -36,7 +36,8 @@
 			"bluenrg_conf.h": "c",
 			"gpio.h": "c",
 			"usart.h": "c",
-			"hci_tl_interface.h": "c"
+			"hci_tl_interface.h": "c",
+			"hci.h": "c"
 		}
 	}
 }
