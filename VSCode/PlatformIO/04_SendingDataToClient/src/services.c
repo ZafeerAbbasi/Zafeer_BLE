@@ -85,8 +85,8 @@ tBleStatus service_AddService( void )
         customServiceHdl,
         UUID_TYPE_128,
         &characteristicUUID,
-        10,
-        CHAR_PROP_NOTIFY | CHAR_PROP_READ,
+        2,
+        CHAR_PROP_NOTIFY,
         ATTR_PERMISSION_NONE,
         GATT_DONT_NOTIFY_EVENTS,
         0,
@@ -94,14 +94,21 @@ tBleStatus service_AddService( void )
         &customCharacteristicHdl
     );
 
-    aci_gatt_update_char_value(
+    return ret;
+}
+
+void service_UpdateData( int16_t newData )
+{
+    tBleStatus ret;
+
+    /*Update Characteristics Value*/
+    ret = aci_gatt_update_char_value(
         customServiceHdl,
         customCharacteristicHdl,
         0,
-        strlen( name ),
-        ( uint8_t * )name
+        2,
+        ( uint8_t * )&newData
     );
-    
 
-    return ret;
+    
 }
